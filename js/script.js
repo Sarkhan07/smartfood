@@ -115,4 +115,62 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     setClock('.timer', deadline);
+
+    /// modal
+    //for easily getting from html data-modal add in tag
+
+    const modalTrigger = document.querySelectorAll('[data-modal]'),
+        modal = document.querySelector('.modal'),
+        modalCloseBtn = document.querySelector('[data-close]');
+
+    function openModal() {
+        modal.classList.add('show');
+        modal.classList.remove('hide');
+        document.body.style.overflow = 'hidden';
+        clearInterval(modalTImerId); // если сам открыл то надо очистить
+    }
+
+    modalTrigger.forEach((btn) => {
+        btn.addEventListener('click', openModal);
+    });
+
+    // () => {
+    //     modal.classList.add('show');
+    //     modal.classList.remove('hide');
+    //     // modal.classList.toggle('show');
+    //     document.body.style.overflow = 'hidden';
+    // });
+    // )};
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    // закрыть модальное окно кликая на подножку и это modal
+
+    function closeModal() {
+        modal.classList.add('hide');
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal(); // здесь вызываем потому что надо выполнить после условия
+            // modal.classList.add('hide');
+            // modal.classList.remove('show');
+            // document.body.style.overflow = '';
+            // но здесь повторение вверхнего кода это не хорошая практика Do not repeat yourself
+        }
+    });
+
+    // esq close the modal// with keydown// keycpde.info we can search all keys code
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Escape' && modal.classList.contains('show')) {
+            closeModal();
+        }
+    });
+
+    // poping up after 5 sec
+    const modalTImerId = setTimeout(openModal, 5000);
+
+    // task modal will open after certain scrolling
 });
