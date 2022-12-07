@@ -173,4 +173,16 @@ window.addEventListener('DOMContentLoaded', () => {
     const modalTImerId = setTimeout(openModal, 5000);
 
     // task modal will open after certain scrolling
+
+    function showModalByScroll() {
+        if (
+            window.pageYOffset + document.documentElement.clientHeight >=
+            document.documentElement.scrollHeight
+        ) {
+            openModal();
+            window.removeEventListener('scroll', showModalByScroll); // то есть как только открылся уже убрать обработчика чтобы больше не открылся
+        } // I => pagexoffset прокрученная часть + II => видимая часть на экране = общая высота сайта с учетом прокрутки .. но лучше - 1 для страховки добавитьЫ
+    } // { once: true } // чтобы обработчик только раз сработал но это здесь не подходит так акак обработчик на windows
+
+    window.addEventListener('scroll', showModalByScroll);
 });
