@@ -271,4 +271,70 @@ window.addEventListener('DOMContentLoaded', () => {
     // const div = new MenuCard();
 
     // div.render();
+
+    // send forms
+
+    const forms = document.querySelectorAll('form');
+
+    const message = {
+        loading: 'Загрузка...',
+        success: 'Спасибо! Скоро мы с вами свяжемся',
+        failure: 'Что-то пошло не так',
+    };
+
+    forms.forEach((item) => {
+        postData(item); // shift + F5 чтобы сбросить все данные(kesh)
+    });
+
+    function postData(form) {
+        form.addEventListener('submit', (e) => {
+            // кнопка в форуме автоматически принимает submit
+            e.preventDefault();
+
+            let statusMessage = document.createElement('div');
+
+            statusMessage.classList.add('status');
+
+            statusMessage.textContent = message.loading;
+            form.append(statusMessage);
+
+            const request = new XMLHttpRequest();
+
+            request.open('POST', 'server.php');
+            // request.setRequestHeader(
+            //     'Content-type',
+            //     'application/json; charset=utf-8'
+            // ); when use formdata and xmlrequest header we should not use
+            // а если наш сервер принимает в json формете то тогда нужет заголовок
+            request.setRequestHeader('Content-type', 'application/json');
+            const object = {};
+
+            const formData = new FormData(form); // автоматически будет взять с форма все данные
+            // чтобы formDATA сработала надо в верстке обязательно указать name"phone or Name"
+
+            // в консоли можео делать и медленное 3 g
+
+            formData.forEach(function (value, key) {
+                object[key] = value;
+            });
+
+            const json = JSON.stringify(object); // превращает обычный объект в json
+
+            // request.send(formData);
+            request.send(json); // comparison the demand of our servis
+
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    console.log(request.response);
+                    statusMessage.textContent = message.success;
+                    form.reset(); // чтобы очистить форму.. альтернатив брать инпуты перебрать их и очистить их value
+                    setTimeout(() => {
+                        statusMessage.remove();
+                    }, 2000);
+                } else {
+                    statusMessage = message.failure;
+                }
+            });
+        });
+    }
 });
