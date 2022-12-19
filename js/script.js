@@ -42,7 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     //timer
 
-    const deadline = '2022-12-20'; // input с type data возвращает с таким форматом так что лучше привыкать так
+    const deadline = '2022-12-31'; // input с type data возвращает с таким форматом так что лучше привыкать так
     // миллисекунда 1 / 1000 , в 1 сек = 60000
     function getTimeRemaining(endtime) {
         let days, hours, minutes, seconds;
@@ -120,8 +120,8 @@ window.addEventListener('DOMContentLoaded', () => {
     //for easily getting from html data-modal add in tag
 
     const modalTrigger = document.querySelectorAll('[data-modal]'),
-        modal = document.querySelector('.modal'),
-        modalCloseBtn = document.querySelector('[data-close]');
+        modal = document.querySelector('.modal');
+    // modalCloseBtn = document.querySelector('[data-close]');
 
     function openModal() {
         modal.classList.add('show');
@@ -142,7 +142,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // });
     // )};
 
-    modalCloseBtn.addEventListener('click', closeModal);
+    // modalCloseBtn.addEventListener('click', closeModal);
 
     // закрыть модальное окно кликая на подножку и это modal
 
@@ -153,7 +153,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        if (e.target === modal || e.target.getAttribute('data-close') == '') {
+            // чтобы получить атрибут того куда нажимали и закрыть окно
             closeModal(); // здесь вызываем потому что надо выполнить после условия
             // modal.classList.add('hide');
             // modal.classList.remove('show');
@@ -170,7 +171,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     // poping up after 5 sec
-    // const modalTImerId = setTimeout(openModal, 5000);
+    const modalTImerId = setTimeout(openModal, 50000);
 
     // task modal will open after certain scrolling
 
@@ -277,7 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('form');
 
     const message = {
-        loading: 'Загрузка...',
+        loading: 'img/spinner.svg',
         success: 'Спасибо! Скоро мы с вами свяжемся',
         failure: 'Что-то пошло не так',
     };
@@ -291,13 +292,19 @@ window.addEventListener('DOMContentLoaded', () => {
             // кнопка в форуме автоматически принимает submit
             e.preventDefault();
 
-            let statusMessage = document.createElement('div');
+            // let statusMessage = document.createElement('div');
+            // statusMessage.classList.add('status');
+            let statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+            display: block;
+            margin: 0 auto`;
 
-            statusMessage.classList.add('status');
+            // statusMessage.textContent = message.loading;
+            // form.append(statusMessage);1 WAY
+            // 2 WAY of adding element to page
 
-            statusMessage.textContent = message.loading;
-            form.append(statusMessage);
-
+            form.insertAdjacentElement('afterend', statusMessage);
             const request = new XMLHttpRequest();
 
             request.open('POST', 'server.php');
@@ -326,15 +333,46 @@ window.addEventListener('DOMContentLoaded', () => {
             request.addEventListener('load', () => {
                 if (request.status === 200) {
                     console.log(request.response);
-                    statusMessage.textContent = message.success;
+                    // statusMessage.textContent = message.success;
+                    showThanksModal(message.success);
                     form.reset(); // чтобы очистить форму.. альтернатив брать инпуты перебрать их и очистить их value
                     setTimeout(() => {
                         statusMessage.remove();
                     }, 2000);
                 } else {
-                    statusMessage = message.failure;
+                    // statusMessage = message.failure;
+                    showThanksModal(message.failure);
                 }
             });
         });
+    }
+
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
+
+        prevModalDialog.classList.add('hide');
+        openModal();
+
+        const thanksModal = document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+
+        thanksModal.innerHTML = `
+        <div class="modal__content">
+            <div class = "modal__close" data-close>&times;</div>
+            <div class = "modal__title">${message}</div>
+        
+        
+        </div>
+        
+        `;
+
+        document.querySelector('.modal').append(thanksModal);
+
+        setTimeout(() => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000);
     }
 });
