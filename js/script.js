@@ -238,36 +238,85 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // чтобы когда надо использовать на месте мы пишем, и это потом потеряться может
 
-    new MenuCard(
-        'img/tabs/vegy.jpg',
-        'vegy',
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu .container',
-        'menu__item',
-        'big'
-    ).render();
+    //for gettin from database
+    const getResourses = async (url) => {
+        const res = await fetch(url);
 
-    new MenuCard(
-        'img/tabs/elite.jpg',
-        'elite',
-        'Меню “Премиум”',
-        'В меню "Премиум" мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        14,
-        '.menu .container',
-        'menu__item'
-    ).render();
+        // fetch has limitation that with catch cannot return problem when it's 404 therefore writedown so .ok status
 
-    new MenuCard(
-        'img/tabs/post.jpg',
-        'post',
-        'Меню "Постное"',
-        'Меню "Постное" - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        21,
-        '.menu .container',
-        'menu__item'
-    ).render();
+        if (!res.ok) {
+            throw new Error(`Couldn't fetch ${url}, status: ${res.status}`);
+        }
+
+        return await res.json(); // приходит в нормальном формате
+    };
+
+    getResourses('http://localhost:3000/menu').then((data) => {
+        ///first method
+        data.forEach(({ img, altimg, title, descr, price }) => {
+            new MenuCard(
+                img,
+                altimg,
+                title,
+                descr,
+                price,
+                '.menu .container'
+            ).render();
+        });
+    });
+
+    // second method when only one time we append something
+
+    // getResourses('http://localhost:3000/menu').then((data) => createCard(data));
+
+    //third method by axios
+
+    // axios.get('http://localhost:3000/menu').then((data) => {
+    //     data.data.forEach(({ img, altimg, title, descr, price }) => {
+    //         // data.data что мы обращаемся объекту в в этой библиотеке так устроена
+    //         new MenuCard(
+    //             img,
+    //             altimg,
+    //             title,
+    //             descr,
+    //             price,
+    //             '.menu .container'
+    //         ).render();
+    //     });
+    // });
+    // function createCard(data) {
+    //     data.forEach(({ img, altimg, title, descr, price }) => {
+    //         const element = document.createElement('div');
+    //         element.classList.add('menu__item');
+
+    //         element.innerHTML = `
+    //             <img src=${img} alt=${altimg}>
+    //             <h3 class="menu__item-subtitle">${title}</h3>
+    //             <div class="menu__item-descr">${descr}</div>
+    //             <div class="menu__item-divider"></div>
+    //             <div class="menu__item-price">
+    //                 <div class="menu__item-cost">Цена:</div>
+    //                 <div class="menu__item-total"><span>${price}</span> грн/день</div>
+    //             </div>
+    //             `;
+
+    //         document.querySelector('.menu .container').append(element);
+    //     });
+    // }
+    // everything is gotten by server and put inside constructor
+
+    //each element we call object because inside array there are different array// there are also desctuction
+
+    // new MenuCard( this in need when we don't work with server
+    //     'img/tabs/vegy.jpg',
+    //     'vegy',
+    //     'Меню "Фитнес"',
+    //     'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+    //     9,
+    //     '.menu .container',
+    //     'menu__item',
+    //     'big'
+    // ).render();
 
     // const div = new MenuCard();
 
@@ -284,10 +333,26 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach((item) => {
-        postData(item); // shift + F5 чтобы сбросить все данные(kesh)
+        bindPostData(item); // shift + F5 чтобы сбросить все данные(kesh)
     });
 
-    function postData(form) {
+    const postData = async (url, data) => {
+        // это означает что внутри функции будет асинхронный код
+        // во время запроса обработать данных
+        const res = await fetch(url, {
+            //блогадаря асинхронности код подождет пока выполнится код а потом уж пойдет присваивание
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json', // все будет пока что поститься в формате json
+            },
+            body: data,
+        });
+
+        return await res.json(); //возвращаем в формате json но чтобы ожидал вернутие надо тоже набрать await
+    };
+
+    function bindPostData(form) {
+        // это связать какой пост данных
         form.addEventListener('submit', (e) => {
             // кнопка в форуме автоматически принимает submit
             e.preventDefault();
@@ -320,12 +385,17 @@ window.addEventListener('DOMContentLoaded', () => {
             // в консоли можео делать и медленное 3 g
             const formData = new FormData(form); // автоматически будет взять с форма все данные
             // чтобы formDATA сработала надо в верстке обязательно указать name"phone or Name"
-            const object = {};
-            formData.forEach(function (value, key) {
-                object[key] = value;
-            });
 
+            ///
+            // const object = {};
+            // formData.forEach(function (value, key) {
+            //     object[key] = value;
+            // });
+            ///
+            //instead of this forEach we can do so
             // const json = JSON.stringify(object); // превращает обычный объект в json
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+            // for doing array in array from object entries
 
             // request.send(formData);
             // request.send(json); // comparison the demand of our servis
@@ -345,14 +415,16 @@ window.addEventListener('DOMContentLoaded', () => {
             //     }
             // });
 
-            fetch('server.php', {
-                // если адрес указан не правильно cathc (reject) не будет выполняться. а при отключение интернета будет выполныяться
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json',
-                },
-                body: JSON.stringify(object),
-            })
+            // fetch('server.php', {
+            //     // если адрес указан не правильно cathc (reject) не будет выполняться. а при отключение интернета будет выполныяться
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-type': 'application/json',
+            //     },
+            //     body: JSON.stringify(object),
+            // }); это код уже старый так как вместо этого существует функция post data
+
+            postData('http://localhost:3000/requests', json)
                 // .then((data) => data.text()) // превращаем в обычные текст
                 .then((data) => {
                     console.log(data); // data те данные которые возвращаются с promisess
@@ -397,4 +469,126 @@ window.addEventListener('DOMContentLoaded', () => {
             closeModal();
         }, 4000);
     }
+    // getting database
+    //in requests (db.json) будут записываться обращение пользователя когда он отправляем форму с сайта
+    // fetch('db.json')
+    fetch('http://localhost:3000/menu')
+        .then((data) => data.json())
+        .then((res) => console.log(res)); // здесь превратиться в обычный js объект
+
+    // json-server db.json for working with server
+
+    // slider
+
+    const slides = document.querySelectorAll('.offer__slide'),
+        prev = document.querySelector('.offer__slider-prev'),
+        next = document.querySelector('.offer__slider-next'),
+        total = document.querySelector('#total'),
+        current = document.querySelector('#current'),
+        slidesWrapper = document.querySelector('.offer__slider-wrapper'),
+        slidesField = document.querySelector('.offer__slider-inner'),
+        width = window.getComputedStyle(slidesWrapper).width;
+
+    let slideIndex = 1;
+    let offset = 0;
+
+    // если поставить внутри функции показатель не будет правильным
+    if (slides.length < 10) {
+        total.textContent = `0${slides.length}`;
+        current.textContent = `0${slideIndex}`;
+    } else {
+        total.textContent = slides.length;
+        current.textContent = slideIndex;
+    }
+
+    slidesField.style.width = 100 * slides.length + '%';
+
+    slidesField.style.display = 'flex';
+    slidesField.style.transtion = '0.5s all';
+
+    slidesWrapper.style.overflow = 'hidden';
+
+    slides.forEach((slide) => {
+        slide.style.width = width;
+    });
+
+    next.addEventListener('click', () => {
+        if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)) {
+            // for removing px from the number we use slice
+            offset = 0;
+        } else {
+            offset += +width.slice(0, width.length - 2);
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`;
+
+        if (slideIndex == slides.length) {
+            slideIndex = 1;
+        } else {
+            slideIndex++;
+        }
+
+        if (slides.length < 10) {
+            current.textContent = `0${slideIndex}`;
+        } else {
+            current.textContent = slideIndex;
+        }
+    });
+
+    prev.addEventListener('click', () => {
+        if (offset == 0) {
+            offset = +width.slice(0, width.length - 2) * (slides.length - 1);
+        } else {
+            offset -= +width.slice(0, width.length - 2);
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`;
+
+        if (slideIndex == 1) {
+            slideIndex = slides.length;
+        } else {
+            slideIndex--;
+        }
+
+        if (slides.length < 10) {
+            current.textContent = `0${slideIndex}`;
+        } else {
+            current.textContent = slideIndex;
+        }
+    });
+    // showSlides(slideIndex);
+
+    // function showSlides(n) {
+    //     if (n > slides.length) {
+    //         slideIndex = 1;
+    //     }
+
+    //     if (n < 1) {
+    //         slideIndex = slides.length;
+    //     }
+
+    //     // hide others
+
+    //     slides.forEach((item) => (item.style.display = 'none'));
+
+    //     slides[slideIndex - 1].style.display = 'block';
+
+    //     if (slides.length < 10) {
+    //         current.textContent = `0${slideIndex}`;
+    //     } else {
+    //         current.textContent = slideIndex;
+    //     }
+    // }
+
+    // function plusSlides(n) {
+    //     showSlides((slideIndex += n));
+    // }
+
+    // prev.addEventListener('click', () => {
+    //     plusSlides(-1);
+    // });
+
+    // next.addEventListener('click', () => {
+    //     plusSlides(1);
+    // });
+
+    // second methods of doing slide
 });
