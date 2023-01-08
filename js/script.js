@@ -1,3 +1,5 @@
+require('es6-promise').polyfill();
+import 'nodelist-foreach-polyfill';
 import tabs from './modules/tabs';
 import modal from './modules/modal';
 import timer from './modules/timer';
@@ -13,7 +15,6 @@ window.addEventListener('DOMContentLoaded', () => {
         10000
     );
     // tab
-    // json-server db.json for working with server
 
     // const tabs = require('./modules/tabs'),
     //     modal = require('./modules/modal'),
@@ -55,3 +56,12 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     calc();
 });
+// json-server db.json for working with server
+
+// babel
+
+// npm install --save-dev @babel/core @babel/cli @babel/preset-env
+// npm install --save @babel/polyfill
+//  npm i --save-dev core-js core js its library and with function useBuiltIns we can opt only useful
+// npm install es6-promise
+//  npm i nodelist-foreach-polyfill
